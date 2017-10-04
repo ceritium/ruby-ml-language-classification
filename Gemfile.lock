@@ -4,6 +4,8 @@ GEM
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     buftok (0.2.0)
+    charlock_holmes (0.7.5)
+    coderay (1.1.2)
     domain_name (0.5.20170404)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.2.1)
@@ -21,9 +23,13 @@ GEM
     http_parser.rb (0.6.0)
     memoizable (0.4.2)
       thread_safe (~> 0.3, >= 0.3.1)
+    method_source (0.9.0)
     multipart-post (2.0.0)
     naught (1.1.0)
     nbayes (0.1.1)
+    pry (0.11.1)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
     public_suffix (2.0.5)
     simple_oauth (0.3.1)
     thread_safe (0.3.6)
@@ -45,8 +51,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  charlock_holmes
   dotenv
   nbayes
+  pry
   twitter
 
 BUNDLED WITH
