@@ -4,7 +4,10 @@ GEM
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     buftok (0.2.0)
+    byebug (9.1.0)
     charlock_holmes (0.7.5)
+    classifier-reborn (2.1.0)
+      fast-stemmer (~> 1.0)
     coderay (1.1.2)
     domain_name (0.5.20170404)
       unf (>= 0.0.5, < 1.0.0)
@@ -12,6 +15,7 @@ GEM
     equalizer (0.0.11)
     faraday (0.11.0)
       multipart-post (>= 1.2, < 3)
+    fast-stemmer (1.0.2)
     http (2.2.2)
       addressable (~> 2.3)
       http-cookie (~> 1.0)
@@ -30,6 +34,9 @@ GEM
     pry (0.11.1)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
+    pry-byebug (3.5.0)
+      byebug (~> 9.1)
+      pry (~> 0.10)
     public_suffix (2.0.5)
     simple_oauth (0.3.1)
     thread_safe (0.3.6)
@@ -52,9 +59,11 @@ PLATFORMS
 
 DEPENDENCIES
   charlock_holmes
+  classifier-reborn
   dotenv
   nbayes
   pry
+  pry-byebug
   twitter
 
 BUNDLED WITH
