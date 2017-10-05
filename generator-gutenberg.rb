@@ -38,6 +38,7 @@ Dir["gutenberg/es/*"].shuffle.each_with_index do |path, index|
 			store.call(word, arr[index+1])
 			store.call("#{arr[index-1]} #{word}", arr[index+1])
 			store.call("#{arr[index-2]} #{arr[index-1]} #{word}", arr[index+1])
+			store.call("#{arr[index-3]} #{arr[index-2]} #{arr[index-1]} #{word}", arr[index+1])
 		end
   end
 end
@@ -50,7 +51,7 @@ end
 # binding.pry
 
 
-text = ["la", "vida"]
+text = [hash.select{|k,v| k.length > 5}.sort_by {|_key, value| -value.count}.to_h.keys.shuffle.first]
 
 # generate = -> (words) {
 #   posi = hash[words.reverse[0..1].reverse.join(" ")] || hash[words.reverse[0]] 
@@ -65,17 +66,32 @@ text = ["la", "vida"]
 #
 # generate.call(text)
 
+
+ops = {
+	1 =>  0,
+	2 =>  0,
+	3 =>  0,
+	4 =>  0
+}
+
 fetch_word = -> (index) {
 
+	op4 = hash[text.reverse[0..3].reverse.join(" ")]
 	op3 = hash[text.reverse[0..2].reverse.join(" ")]
 	op2 = hash[text.reverse[0..1].reverse.join(" ")]
 	op1 = hash[text.reverse[0]]
 
-	posi = if op3 && op3.keys.count > 2
+	posi = if op4 && op4.keys.count > 2
+		ops[4] += 1
+		op4
+	elsif op3 && op3.keys.count > 2
+		ops[3] += 1
 		op3
 	elsif op2 && op2.keys.count > 2
+		ops[2] += 1
 		op2
 	else
+		ops[1] += 1
 		op1
 	end
 
@@ -83,7 +99,9 @@ fetch_word = -> (index) {
 	lol
 }
 
-100.times do |time|
+binding.pry
+
+1000.times do |time|
 	text << fetch_word.call(time)
 
 	puts "\e[H\e[2J"
@@ -92,6 +110,7 @@ fetch_word = -> (index) {
 end
 
 
+pp ops
 
 # if ARGV[0]
 #   tokens = ARGV[0].split(/\s+/)
