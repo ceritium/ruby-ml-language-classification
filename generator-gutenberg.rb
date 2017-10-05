@@ -4,6 +4,9 @@ require "pp"
 require "pry"
 
 hash = {}
+
+deep = 5
+
 store = -> (word1, word2) do
 	if word1 && word2
 		word1 = word1.downcase
@@ -22,9 +25,9 @@ store = -> (word1, word2) do
 	end
 end
 
-Dir["gutenberg/es/*"].shuffle.each_with_index do |path, index|
-  puts "#{index}, #{path}"
-  break if index > 5
+Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
+  puts "#{i_f}, #{path}"
+  break if i_f > 5
 
   if File.file?(path)
 		content = File.open(path).read
@@ -36,36 +39,15 @@ Dir["gutenberg/es/*"].shuffle.each_with_index do |path, index|
 		arr = utf8_content.split(" ")
 		arr.each_with_index do |word, index|
 			store.call(word, arr[index+1])
-			store.call("#{arr[index-1]} #{word}", arr[index+1])
-			store.call("#{arr[index-2]} #{arr[index-1]} #{word}", arr[index+1])
-			store.call("#{arr[index-3]} #{arr[index-2]} #{arr[index-1]} #{word}", arr[index+1])
+      deep.times do |time|
+        words = time.downto(1).map{|i| arr[index - i]}
+        words << word
+        text = words.join(" ")
+        store.call(text, arr[index+1])
+      end
 		end
   end
 end
-
-# File.open("gutember.yml", "w") do |f|
-# 	f.write hash.to_yaml
-# end
-#
-# hash = YAML.load_file("gutember.yml")
-# binding.pry
-
-
-text = [hash.select{|k,v| k.length > 5}.sort_by {|_key, value| -value.count}.to_h.keys.shuffle.first]
-
-# generate = -> (words) {
-#   posi = hash[words.reverse[0..1].reverse.join(" ")] || hash[words.reverse[0]] 
-# 	posi.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.each do |word|
-# 		words << word
-# puts words
-# 		lol = generate.call(words.reverse[0..2].reverse)
-# 		puts lol
-# 		lol
-# 	end
-# }
-#
-# generate.call(text)
-
 
 ops = {
 	1 =>  0,
@@ -73,9 +55,9 @@ ops = {
 	3 =>  0,
 	4 =>  0
 }
+text = []
 
 fetch_word = -> (index) {
-
 	op4 = hash[text.reverse[0..3].reverse.join(" ")]
 	op3 = hash[text.reverse[0..2].reverse.join(" ")]
 	op2 = hash[text.reverse[0..1].reverse.join(" ")]
@@ -95,28 +77,23 @@ fetch_word = -> (index) {
 		op1
 	end
 
-	lol = posi.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
-	lol
+	posi.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
 }
 
-binding.pry
+word_keys = hash.select{|k,v| k.length > 5}.sort_by {|_key, value| -value.count}.to_h.keys
 
-1000.times do |time|
-	text << fetch_word.call(time)
 
-	puts "\e[H\e[2J"
-	printf "%s", "\r#{text.join(" ")}\n"
-	sleep 0.05
+10.times do 
+  text = [word_keys.shuffle.first]
+
+  10.times do |time|
+    text << fetch_word.call(time)
+
+    # puts "\e[H\e[2J"
+    # printf "%s", "\r#{text.join(" ")}\n"
+    # sleep 0.05
+  end
+  puts text.join(" ")
+
+  pp ops
 end
-
-
-pp ops
-
-# if ARGV[0]
-#   tokens = ARGV[0].split(/\s+/)
-#   result = nbayes.classify(tokens)
-#   puts
-#   puts "LANG: #{result.max_class}"
-#   puts
-#   pp result
-# end
