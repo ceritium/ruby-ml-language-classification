@@ -5,7 +5,7 @@ require "pry"
 
 hash = {}
 
-deep = 5
+deep = 4
 
 store = -> (word1, word2) do
 	if word1 && word2
@@ -27,7 +27,7 @@ end
 
 Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   puts "#{i_f}, #{path}"
-  break if i_f > 5
+  break if i_f >= 5
 
   if File.file?(path)
 		content = File.open(path).read
@@ -49,51 +49,64 @@ Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   end
 end
 
+puts "generating"
+
 ops = {
 	1 =>  0,
 	2 =>  0,
 	3 =>  0,
 	4 =>  0
 }
-text = []
 
-fetch_word = -> (index) {
-	op4 = hash[text.reverse[0..3].reverse.join(" ")]
-	op3 = hash[text.reverse[0..2].reverse.join(" ")]
-	op2 = hash[text.reverse[0..1].reverse.join(" ")]
-	op1 = hash[text.reverse[0]]
+max = 40
+times = 0
 
-	posi = if op4 && op4.keys.count > 2
-		ops[4] += 1
-		op4
-	elsif op3 && op3.keys.count > 2
-		ops[3] += 1
-		op3
-	elsif op2 && op2.keys.count > 2
-		ops[2] += 1
-		op2
-	else
-		ops[1] += 1
-		op1
-	end
+fetch_word = -> (text = [], key = nil, value = nil) {
+  if text.length == 0
+    word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
+    text = word_keys.shuffle.first.split(" ")
+  end
 
-	posi.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+  puts "\e[H\e[2J"
+  printf "%s", "\r#{text.join(" ")}\n"
+  sleep 0.05
+
+  deep.downto(1).each do |time|
+    string = text.reverse[0..time].reverse.join(" ")
+    string_hash = hash[string]
+    # if string_hash && (time == 1 || string_hash.keys.count > 2)
+    if string_hash && (time == 0 || string_hash.keys.count > 1)
+      # ops[time+1] += 1
+
+      word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+      text << word
+
+      times +=1 
+      fetch_word.call(text, string, word) #if times < max
+      break;
+    # elsif time == 1
+    #   times -= 1
+    #   if key && value
+    #     hash[key].delete(value)
+    #   end
+    #   fetch_word.call(text[0..-2])
+    # end
+    end
+  end
+
+    times -= 1
+    if key && value
+      hash[key].delete(value)
+    end
+    fetch_word.call(text[0..-2])
 }
 
-word_keys = hash.select{|k,v| k.length > 5}.sort_by {|_key, value| -value.count}.to_h.keys
+# text = "trajes de paño blanco".split(" ")
+fetch_word.call()
 
+  # puts "\e[H\e[2J"
+  # printf "%s", "\r#{text.join(" ")}\n"
+  # sleep 0.05
+# puts text.join(" ")
 
-10.times do 
-  text = [word_keys.shuffle.first]
-
-  10.times do |time|
-    text << fetch_word.call(time)
-
-    # puts "\e[H\e[2J"
-    # printf "%s", "\r#{text.join(" ")}\n"
-    # sleep 0.05
-  end
-  puts text.join(" ")
-
-  pp ops
-end
+pp ops
