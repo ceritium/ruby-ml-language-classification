@@ -51,44 +51,77 @@ end
 
 puts "generating"
 
-ops = {
-	1 =>  0,
-	2 =>  0,
-	3 =>  0,
-	4 =>  0
-}
-
-
 times = 0
-fetch_word = -> (text = [], key: nil, value: nil) {
-  times += 1
-  if text.count < 20
-    if text.length == 0
-      word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
-      text = word_keys.shuffle.first.split(" ")
-    end
+# fetch_word = -> (text = [], key: nil, value: nil) {
+#   times += 1
+#   if text.count < 20
+#     if text.length == 0
+#       word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
+#       text = word_keys.shuffle.first.split(" ")
+#     end
+#
+#     # puts "\e[H\e[2J"
+#     printf "%s", "\r#{times} #{text.count} - #{text.join(" ")}\n"
+#     sleep 0.05
+#
+#     deep.downto(1).each do |time|
+#       string = text.reverse[0..time].reverse.join(" ")
+#       string_hash = hash[string]
+#       if string_hash && (time == 0 || string_hash.keys.count > 1)
+#         word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+#         text << word
+#
+#         fetch_word.call(text, key: string, value: word)
+#         break;
+#       end
+#     end
+#
+#     if key && value
+#       hash[key].delete(value)
+#     end
+#   end
+# }
+#
 
-    # puts "\e[H\e[2J"
-    printf "%s", "\r#{times} #{text.count} - #{text.join(" ")}\n"
-    sleep 0.05
 
-    deep.downto(1).each do |time|
-      string = text.reverse[0..time].reverse.join(" ")
-      string_hash = hash[string]
-      if string_hash && (time == 0 || string_hash.keys.count > 1)
-        word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
-        text << word
-
-        fetch_word.call(text, key: string, value: word)
-        break;
-      end
-    end
-
-    if key && value
-      hash[key].delete(value)
-    end
+fetch_word = -> (text = [], added_word = nil) {
+  if text.length == 0
+    text = [("a".."z").to_a.shuffle[0]]
   end
+
+  puts [text, added_word].flatten.compact.join("-")
+
+  if text.flatten.count < 20
+    continue = true
+    new_word = ("a".."z").to_a.shuffle[0]
+
+    5.times do |t| 
+      # sleep 0.5
+      # pp text
+      # puts t
+      if continue && rand > 0.9
+        # puts "rand"
+        # puts new_word
+
+        new_text = text
+        if new_word
+          new_text << new_word
+        end
+
+        fetch_word.call(new_text, new_word)
+        continue = false
+      end
+      new_word.next!
+    end
+
+    fetch_word.call(text)
+  end
+
+  all = [text, added_word]
 }
+
 
 # text = "trajes de paño blanco".split(" ")
-fetch_word.call()
+puts fetch_word.call().flatten.join("+")
+
+
