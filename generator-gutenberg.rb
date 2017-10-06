@@ -27,7 +27,7 @@ end
 
 Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   puts "#{i_f}, #{path}"
-  break if i_f >= 5
+  break if i_f >= 1
 
   if File.file?(path)
 		content = File.open(path).read
@@ -58,55 +58,37 @@ ops = {
 	4 =>  0
 }
 
-max = 40
+
 times = 0
-
-fetch_word = -> (text = [], key = nil, value = nil) {
-  if text.length == 0
-    word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
-    text = word_keys.shuffle.first.split(" ")
-  end
-
-  puts "\e[H\e[2J"
-  printf "%s", "\r#{text.join(" ")}\n"
-  sleep 0.05
-
-  deep.downto(1).each do |time|
-    string = text.reverse[0..time].reverse.join(" ")
-    string_hash = hash[string]
-    # if string_hash && (time == 1 || string_hash.keys.count > 2)
-    if string_hash && (time == 0 || string_hash.keys.count > 1)
-      # ops[time+1] += 1
-
-      word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
-      text << word
-
-      times +=1 
-      fetch_word.call(text, string, word) #if times < max
-      break;
-    # elsif time == 1
-    #   times -= 1
-    #   if key && value
-    #     hash[key].delete(value)
-    #   end
-    #   fetch_word.call(text[0..-2])
-    # end
+fetch_word = -> (text = [], key: nil, value: nil) {
+  times += 1
+  if text.count < 20
+    if text.length == 0
+      word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
+      text = word_keys.shuffle.first.split(" ")
     end
-  end
 
-    times -= 1
+    # puts "\e[H\e[2J"
+    printf "%s", "\r#{times} #{text.count} - #{text.join(" ")}\n"
+    sleep 0.05
+
+    deep.downto(1).each do |time|
+      string = text.reverse[0..time].reverse.join(" ")
+      string_hash = hash[string]
+      if string_hash && (time == 0 || string_hash.keys.count > 1)
+        word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+        text << word
+
+        fetch_word.call(text, key: string, value: word)
+        break;
+      end
+    end
+
     if key && value
       hash[key].delete(value)
     end
-    fetch_word.call(text[0..-2])
+  end
 }
 
 # text = "trajes de paño blanco".split(" ")
 fetch_word.call()
-
-  # puts "\e[H\e[2J"
-  # printf "%s", "\r#{text.join(" ")}\n"
-  # sleep 0.05
-# puts text.join(" ")
-
-pp ops
