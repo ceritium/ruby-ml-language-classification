@@ -5,7 +5,7 @@ require "pry"
 
 hash = {}
 
-deep = 5
+deep = 3
 
 store = -> (word1, word2) do
 	if word1 && word2
@@ -27,7 +27,7 @@ end
 
 Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   puts "#{i_f}, #{path}"
-  break if i_f >= 10
+  break if i_f >= 15
 
   if File.file?(path)
 		content = File.open(path).read
@@ -49,7 +49,6 @@ Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   end
 end
 #
-puts "generating"
 
 times = 0
 
@@ -66,7 +65,8 @@ deeper = -> (arr) {
 fetch_word = -> (text = []) {
   puts "\e[H\e[2J"
   pp text.flatten.join(" ")
-  sleep 0.001
+  # sleep 0.05
+
 
   continue = true
   to_return = nil
@@ -75,8 +75,10 @@ fetch_word = -> (text = []) {
     if continue
       string = text.flatten.reverse[0..time].reverse.join(" ")
       string_hash = hash[string]
-      if string_hash && (time == 0 || string_hash.keys.count > 1)
-        new_word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+      if string_hash && string_hash.keys.count > 1
+        # binding.pry
+        # new_word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+        new_word = string_hash.sort_by {|_key, value| -value}.map{|xv| xv[-1].times.map{|x| xv[0]}}.flatten.shuffle.first
         to_return = [text, new_word]
         hash[string].delete(new_word)
         continue = false
@@ -95,17 +97,17 @@ fetch_word = -> (text = []) {
 }
 
 
-# text = "trajes de paño blanco".split(" ")
-
+puts "preparing"
 word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
 
 seed = -> (word_keys){
   deeper.call(word_keys.shuffle.first.split(" "))
 }
 
+puts "generating"
 start_with = nil
-wow = start_with || deeper.call("veronica canta".split(" "))
-while wow.flatten.count <= 50
+wow = start_with || [] || deeper.call("veronica canta".split(" "))
+while wow.flatten.count < 50
   if wow.count == 0
     wow = start_with || fetch_word.call(seed.call(word_keys))
   end
