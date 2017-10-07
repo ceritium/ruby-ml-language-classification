@@ -41,11 +41,10 @@ class TextGenerator
     puts "= Calculating seed words..."
     word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
 
-    start_with = nil
-    wow = start_with || [] || deeper("veronica canta".split(" "))
-    while wow.flatten.count < 50
+    wow = []
+    while wow.flatten.count < options[:words]
       if wow.count == 0
-        wow = start_with || fetch_word(seed(word_keys))
+        wow = fetch_word(seed(word_keys))
       end
       wow = fetch_word(wow)
     end
