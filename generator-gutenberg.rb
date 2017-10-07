@@ -5,7 +5,7 @@ require "pry"
 
 hash = {}
 
-deep = 4
+deep = 5
 
 store = -> (word1, word2) do
 	if word1 && word2
@@ -27,7 +27,7 @@ end
 
 Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   puts "#{i_f}, #{path}"
-  break if i_f >= 1
+  # break if i_f >= 10
 
   if File.file?(path)
 		content = File.open(path).read
@@ -48,80 +48,68 @@ Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
 		end
   end
 end
-
+#
 puts "generating"
 
 times = 0
-# fetch_word = -> (text = [], key: nil, value: nil) {
-#   times += 1
-#   if text.count < 20
-#     if text.length == 0
-#       word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
-#       text = word_keys.shuffle.first.split(" ")
-#     end
-#
-#     # puts "\e[H\e[2J"
-#     printf "%s", "\r#{times} #{text.count} - #{text.join(" ")}\n"
-#     sleep 0.05
-#
-#     deep.downto(1).each do |time|
-#       string = text.reverse[0..time].reverse.join(" ")
-#       string_hash = hash[string]
-#       if string_hash && (time == 0 || string_hash.keys.count > 1)
-#         word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
-#         text << word
-#
-#         fetch_word.call(text, key: string, value: word)
-#         break;
-#       end
-#     end
-#
-#     if key && value
-#       hash[key].delete(value)
-#     end
-#   end
-# }
-#
 
-
-fetch_word = -> (text = [], added_word = nil) {
-  if text.length == 0
-    text = [("a".."z").to_a.shuffle[0]]
+deeper = -> (arr) {
+  arr2 = [arr[0]]
+  arr[1..-1].each do |item|
+    arr2 = [arr2, item]
   end
 
-  puts [text, added_word].flatten.compact.join("-")
+  arr2
+}
 
-  if text.flatten.count < 20
-    continue = true
-    new_word = ("a".."z").to_a.shuffle[0]
 
-    5.times do |t| 
-      # sleep 0.5
-      # pp text
-      # puts t
-      if continue && rand > 0.9
-        # puts "rand"
-        # puts new_word
+fetch_word = -> (text = []) {
+  puts "\e[H\e[2J"
+  pp text.flatten.join(" ")
+  sleep 0.001
 
-        new_text = text
-        if new_word
-          new_text << new_word
-        end
+  continue = true
+  to_return = nil
 
-        fetch_word.call(new_text, new_word)
+  deep.downto(2).each do |time|
+    if continue
+      string = text.flatten.reverse[0..time].reverse.join(" ")
+      string_hash = hash[string]
+      if string_hash && (time == 0 || string_hash.keys.count > 1)
+        new_word = string_hash.sort_by {|_key, value| -value}[0..5].to_h.keys.shuffle.first
+        to_return = [text, new_word]
+        hash[string].delete(new_word)
         continue = false
       end
-      new_word.next!
     end
-
-    fetch_word.call(text)
   end
 
-  all = [text, added_word]
+  if to_return.nil?
+    if text.flatten.count > 1
+      to_return = text[0]
+    else
+      to_return = []
+    end
+  end
+  to_return
 }
 
 
 # text = "trajes de paño blanco".split(" ")
-puts fetch_word.call().flatten.join("+")
 
+word_keys = hash.select{|k,v| k.length > 5 }.sort_by {|_key, value| -value.count}.to_h.keys
 
+seed = -> (word_keys){
+  deeper.call(word_keys.shuffle.first.split(" "))
+}
+
+start_with = ["la guitarra"]
+# start_with = deeper.call("la guitarra".split(" "))
+wow = start_with
+
+while wow.flatten.count <= 50
+  if wow.count == 0
+    wow = start_with || fetch_word.call(seed.call(word_keys))
+  end
+  wow = fetch_word.call(wow)
+end
