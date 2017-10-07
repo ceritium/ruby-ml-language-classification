@@ -27,7 +27,7 @@ end
 
 Dir["gutenberg/es/*"].shuffle.each_with_index do |path, i_f|
   puts "#{i_f}, #{path}"
-  # break if i_f >= 10
+  break if i_f >= 10
 
   if File.file?(path)
 		content = File.open(path).read
@@ -103,10 +103,8 @@ seed = -> (word_keys){
   deeper.call(word_keys.shuffle.first.split(" "))
 }
 
-start_with = ["la guitarra"]
-# start_with = deeper.call("la guitarra".split(" "))
-wow = start_with
-
+start_with = nil
+wow = start_with || deeper.call("veronica canta".split(" "))
 while wow.flatten.count <= 50
   if wow.count == 0
     wow = start_with || fetch_word.call(seed.call(word_keys))
